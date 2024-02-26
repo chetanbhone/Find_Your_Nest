@@ -11,8 +11,11 @@ const ejsMate = require("ejs-mate");
 const wrapAsync = require("./utils/wrapAsync.js");
 const ExpressError= require("./utils/ExpressError.js");
 
-// require schema validation
-const {listingSchema}=require("./schema.js");
+// require schema validation //also for reviews
+const {listingSchema , reviewSchema }=require("./schema.js");
+
+// require reviews schema
+const Review = require("./models/review.js");
 
 // connect to db
 
@@ -29,12 +32,12 @@ async function main() {
 
 };
 
-app.set("view engine", "ejs");
+app.set("view engine", "ejs");   // set tempeliting engine 
 app.set("views", path.join(__dirname, "views"));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })); //form getting data from form
 app.use(methodeOverride("_method"));
 app.engine("ejs", ejsMate);
-// to serve static
+// to serve static like css
 app.use(express.static(path.join(__dirname, "/public")));
 
 
@@ -48,6 +51,18 @@ app.listen(3030, () => {
 // server validation ( middleware )
  const validateListing = (req, res, next)=>{
     let {error}=listingSchema.validate(req.body);
+    if(error){
+        let errMsg = error.details.map((el)=> el.message).join(",");
+        throw new ExpressError(400 , errMsg);
+    }else{
+        next();
+    }
+ } ;
+ 
+
+ // review server side validation ( middleware )
+ const validateReview = (req, res, next)=>{
+    let {error}=reviewSchema.validate(req.body);
     if(error){
         let errMsg = error.details.map((el)=> el.message).join(",");
         throw new ExpressError(400 , errMsg);
@@ -72,7 +87,7 @@ app.get("/listings/new", (req, res) => {
 //SHOW ROUTE
 app.get("/listings/:id", wrapAsync(async (req, res) => {
     let { id } = req.params;
-    const listing = await Listing.findById(id);
+    const listing = await Listing.findById(id).populate("reviews");
     res.render("listings/show.ejs", { listing });
 
 }));
@@ -112,6 +127,41 @@ app.delete("/listings/:id", wrapAsync(async (req, res) => {
     console.log(deletedListings);
     res.redirect("/listings");
 }));
+
+// Reviews route
+app.post("/listings/:id/reviews" , validateReview , wrapAsync( async(req, res)=>{
+  const listing =await Listing.findById(req.params.id);
+  let newReview = new Review(req.body.review);
+
+  listing.reviews.push(newReview);
+
+  await newReview.save();
+  await listing.save();
+
+console.log(newReview);
+res.redirect(`/listings/${listing._id}`);
+}));
+
+
+
+// Review delete route
+
+app.delete("/listings/:id/reviews/:reviewId" , wrapAsync(async(req, res)=>{
+
+ let {id , reviewId}= req.params;
+ await Listing.findByIdAndUpdate(id , {$pull : {reviews : reviewId}});
+await Review.findByIdAndDelete(reviewId);
+res.redirect(`/listings/${id}`);
+})
+);
+
+
+
+
+
+
+
+
 
 // page not found Error
 app.all("*",(req, res, next)=>{
