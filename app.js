@@ -18,6 +18,12 @@ const listings= require("./routes/listing.js");
 // review routes require
 const reviews = require("./routes/review.js");
 
+// // require secssion 
+const session = require("express-session");
+
+// requier flash
+const flash = require("connect-flash");
+
 // connect to db
 
 const DB_url = ("mongodb://127.0.0.1:27017/wanderLust");
@@ -41,6 +47,29 @@ app.engine("ejs", ejsMate);
 // to serve static like css
 app.use(express.static(path.join(__dirname, "/public")));
 
+app.get("/", (req, res) => {
+    console.log("route is working");
+    res.send("welcome");
+});
+
+
+// secssion
+const sessionOption = {
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+         expires:Date.now()+ 7 * 24 * 60 * 60 * 1000,
+         maxAge: 7 * 24 * 60 * 60 * 1000,
+         httpOnly: true
+    },
+}; 
+
+// use secssion and flassh
+app.use(session(sessionOption));
+app.use(flash());
+
+
 
 // port design
 
@@ -48,6 +77,13 @@ app.listen(3030, () => {
     console.log("server is working");
 });
 
+// flash middleware
+app.use((req, res, next)=>{
+    res.locals.success=req.flash("success"); // locals is use to render
+    res.locals.error=req.flash("error");
+    next();
+});
+ 
  // use listings router
  app.use("/listings" , listings);
 
@@ -71,8 +107,4 @@ app.use((err, req, res, next) => {
 
 
 
-app.get("/", (req, res) => {
-    console.log("route is working");
-    res.send("welcome");
-});
 
