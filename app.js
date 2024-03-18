@@ -6,11 +6,19 @@ const mongoose = require("mongoose");
 const path = require("path");
 const methodeOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-// test
-
 
 const ExpressError= require("./utils/ExpressError.js");
 
+// // require secssion 
+const session = require("express-session");
+
+// requier flash
+const flash = require("connect-flash");
+
+// passport
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
+const User = require("./models/user.js");
 
 // listings routes require
 const listings= require("./routes/listing.js");
@@ -18,11 +26,8 @@ const listings= require("./routes/listing.js");
 // review routes require
 const reviews = require("./routes/review.js");
 
-// // require secssion 
-const session = require("express-session");
-
-// requier flash
-const flash = require("connect-flash");
+//user routes
+const userRouter = require("./routes/user.js");
 
 // connect to db
 
@@ -69,6 +74,13 @@ const sessionOption = {
 app.use(session(sessionOption));
 app.use(flash());
 
+// configure passport
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 
 // port design
@@ -84,11 +96,24 @@ app.use((req, res, next)=>{
     next();
 });
  
+// //demouser
+// app.get("/demouser" , async (req, res)=>{
+//     let fakeUser = new User({
+//            email: "student@gmail.com",
+//            username: "delta-student"
+//     });
+//     let registeredUser = await User.register(fakeUser, "heloworld");
+//     res.send(registeredUser);  
+// });
+
  // use listings router
  app.use("/listings" , listings);
 
  // use review router
  app.use("/listings/:id/reviews" , reviews);
+
+ //use user router
+ app.use("/", userRouter);
 
 
 
