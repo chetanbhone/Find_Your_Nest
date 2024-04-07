@@ -7,17 +7,19 @@
     <div class="card col-6 offset-3 show-card listing-card" >
         <img src="<%=listing.image%>" class="card-img-top show-img" alt="...">
         <div class="card-body ">
-          <p class="card-text">
+          <p class="card-text"> Owned by <b><i><%= listing.owner.username %></i></b></p>
+          
          
-            <%= listing.description %> <br>
-            &#8377; <%=  listing.price.toLocaleString("en-IN")  %> / night
-            <%= listing.location %> <br>
-            <%= listing.country %> <br>
-          </p>  
+            <p class="card-text"><%= listing.description %> </p>
+           <p class="card-text"> &#8377; <%=  listing.price.toLocaleString("en-IN")  %> / night</p>
+            <p class="card-text"><%= listing.location %> </p>
+           <p class="card-text"> <%= listing.country %> </p>
+          
         </div>
       </div>
 
       <br>
+      <%   if(currUser && currUser._id.equals(listing.owner._id)){ %>
       <div class="btns">
         <a href="/listings/<%=listing._id%>/edit" class="btn btn-dark col-1 offset-3 edit-btn"> Edit</a>
 
@@ -26,11 +28,16 @@
         </form>
       </div>
 
+        <% } %>
+
       <div class="col-8 offset-3">
         <hr>
+        <% if(currUser) { %>
        <h4>Leave a review </h4>
         <form action="/listings/<%= listing.id %>/reviews" method="POST">
          
+
+        
      <div class="mt-3 mb-3">
        <label for="rating" class="form-label">Rating</label>
        <input type="range" min="1" max="5" id="rating" name="review[rating]" class="form-range">
@@ -45,15 +52,16 @@
 <br>
 
         </form>
+        <% } %>
 
-        <hr>
+        
 <p><b>All Reviews</b></p>
 <div class="row">
   <% for(review of listing.reviews) { %>
   
     <div class="card col-5 mb-3 ms-3">
       <div class="card-body">
-        <h5 class="card-title">Nobita</h5>
+        <h5 class="card-title">@<%= review.author.username %></h5>
         <p class="card-text"><%= review.comment %></p>
         <p class="card-text"><%= review.rating %> Star</p>
       </div>

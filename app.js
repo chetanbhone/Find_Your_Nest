@@ -89,10 +89,11 @@ app.listen(3030, () => {
     console.log("server is working");
 });
 
-// flash middleware
+// locals middleware
 app.use((req, res, next)=>{
     res.locals.success=req.flash("success"); // locals is use to render
     res.locals.error=req.flash("error");
+    res.locals.currUser = req.user;
     next();
 });
  
