@@ -7,7 +7,7 @@
 
 
             <h3>CREATE A NEW LISTING</h3>
-            <form method="POST" action="/listings" >
+            <form method="POST" action="/listings" enctype="multipart/form-data">
 
                 <div class="mb-3">
                     <label for="title" class="form-label">Title</label>
@@ -21,11 +21,12 @@
                     <textarea name="listing[description]" class="form-control" required></textarea>
                 </div>
 
-                <div class="mb-3">
-                    <label for="image" class="form-label">Image</label>
-                    <input type="text" name="listing[image]" placeholder="enter image link , URl" class="form-control"
-                        >
 
+                <div class="mb-3">
+                    <label for="image" class="form-label">upload listing image</label>
+                    <input type="file" name="listing[image]" class="form-control"
+                        >
+                    required
                 </div>
 
                 <div class="row">
