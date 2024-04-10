@@ -25,7 +25,19 @@ const listingSchema = new Schema({
     owner: {
         type : Schema.Types.ObjectId,
         ref: "User",
-    }
+    },
+    geometry:{
+           type: {
+            type: String,
+            enum : ['Point'],
+            required: true,
+           },
+           coordinates :{
+                   type: [Number],
+                   required: true,
+           },
+    },
+    
 });
 
 // for delete reviews with listing
