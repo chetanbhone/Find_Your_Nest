@@ -15,6 +15,7 @@ const ExpressError= require("./utils/ExpressError.js");
 
 // // require secssion 
 const session = require("express-session");
+const MongoStore = require('connect-mongo');
 
 // requier flash
 const flash = require("connect-flash");
@@ -35,7 +36,9 @@ const userRouter = require("./routes/user.js");
 
 // connect to db
 
-const DB_url = ("mongodb://127.0.0.1:27017/wanderLust");
+// const DB_url = ("mongodb://127.0.0.1:27017/wanderLust");  -------local system------
+
+const DBurl = process.env.ATLASDB_URL;
 
 main().then(() => {
     console.log("connected to database");
@@ -44,7 +47,7 @@ main().then(() => {
 });
 
 async function main() {
-    await mongoose.connect(DB_url);
+    await mongoose.connect(DBurl);
 
 };
 
@@ -56,14 +59,22 @@ app.engine("ejs", ejsMate);
 // to serve static like css
 app.use(express.static(path.join(__dirname, "/public")));
 
-app.get("/", (req, res) => {
-    console.log("route is working");
-    res.send("welcome");
+
+const store = MongoStore.create({
+    mongoUrl: DBurl,
+    crypto: {
+        secret: 'keyboard cat'
+    },
+    touchAfter: 24 * 3600,
 });
 
+store.on("error", ()=>{
+ console.log("ERROR in MONGO SECSSION", err);
+});
 
 // secssion
 const sessionOption = {
+    store,
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true,
@@ -73,6 +84,8 @@ const sessionOption = {
          httpOnly: true
     },
 }; 
+
+
 
 // use secssion and flassh
 app.use(session(sessionOption));
@@ -101,15 +114,7 @@ app.use((req, res, next)=>{
     next();
 });
  
-// //demouser
-// app.get("/demouser" , async (req, res)=>{
-//     let fakeUser = new User({
-//            email: "student@gmail.com",
-//            username: "delta-student"
-//     });
-//     let registeredUser = await User.register(fakeUser, "heloworld");
-//     res.send(registeredUser);  
-// });
+
 
  // use listings router
  app.use("/listings" , listings);
