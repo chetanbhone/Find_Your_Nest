@@ -1,1 +1,1 @@
-website made by using MERN 
+a complete robust website by using MERN stack
